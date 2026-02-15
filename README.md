@@ -417,12 +417,6 @@ MIT License - see LICENSE file for details
 - [Architecture Guide](docs/ARCHITECTURE.md) - System design deep-dive
 - [Deployment Guide](docs/DEPLOYMENT.md) - Production deployment
 
-## 📞 Support
-
-For issues and questions:
-- GitHub Issues: [Create an issue](<repository-url>/issues)
-- Email: team@example.com
-
 ---
 
 **Built with ❤️ for AI Safety**
