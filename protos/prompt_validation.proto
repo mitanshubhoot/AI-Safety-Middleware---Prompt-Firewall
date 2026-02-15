@@ -1,0 +1,93 @@
+syntax = "proto3";
+
+package aifw.prompt_validation;
+
+// Service for prompt validation
+service PromptValidationService {
+  // Validate a single prompt
+  rpc ValidatePrompt(ValidatePromptRequest) returns (ValidatePromptResponse);
+  
+  // Validate multiple prompts
+  rpc BatchValidate(BatchValidateRequest) returns (BatchValidateResponse);
+  
+  // Stream validation for real-time processing
+  rpc StreamValidate(stream ValidatePromptRequest) returns (stream ValidatePromptResponse);
+}
+
+// Request to validate a prompt
+message ValidatePromptRequest {
+  string prompt = 1;
+  optional string user_id = 2;
+  optional string policy_id = 3;
+  map<string, string> context = 4;
+}
+
+// Response from prompt validation
+message ValidatePromptResponse {
+  string request_id = 1;
+  ValidationStatus status = 2;
+  bool is_safe = 3;
+  repeated Detection detections = 4;
+  string policy_id = 5;
+  double latency_ms = 6;
+  string timestamp = 7;
+  string message = 8;
+  bool cached = 9;
+}
+
+// Batch validation request
+message BatchValidateRequest {
+  repeated ValidatePromptRequest prompts = 1;
+}
+
+// Batch validation response
+message BatchValidateResponse {
+  repeated ValidatePromptResponse results = 1;
+  double total_latency_ms = 2;
+}
+
+// Validation status enum
+enum ValidationStatus {
+  VALIDATION_STATUS_UNSPECIFIED = 0;
+  ALLOWED = 1;
+  BLOCKED = 2;
+  WARNED = 3;
+  ERROR = 4;
+}
+
+// Detection message
+message Detection {
+  string id = 1;
+  DetectionType detection_type = 2;
+  string matched_pattern = 3;
+  double confidence_score = 4;
+  Severity severity = 5;
+  optional string category = 6;
+  repeated MatchPosition match_positions = 7;
+  map<string, string> metadata = 8;
+}
+
+// Detection type enum
+enum DetectionType {
+  DETECTION_TYPE_UNSPECIFIED = 0;
+  REGEX = 1;
+  SEMANTIC = 2;
+  POLICY = 3;
+  CONTEXTUAL = 4;
+}
+
+// Severity enum
+enum Severity {
+  SEVERITY_UNSPECIFIED = 0;
+  CRITICAL = 1;
+  HIGH = 2;
+  MEDIUM = 3;
+  LOW = 4;
+  INFO = 5;
+}
+
+// Match position
+message MatchPosition {
+  int32 start = 1;
+  int32 end = 2;
+}

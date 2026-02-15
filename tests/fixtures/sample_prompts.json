@@ -1,0 +1,10 @@
+[
+  {
+    "prompt": "What is machine learning?",
+    "expected_safe": true
+  },
+  {
+    "prompt": "My API key is sk-test123",
+    "expected_safe": false
+  }
+]

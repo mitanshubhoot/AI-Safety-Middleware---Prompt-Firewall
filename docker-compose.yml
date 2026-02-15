@@ -1,0 +1,141 @@
+version: '3.8'
+
+services:
+  # PostgreSQL database with pgvector extension
+  postgres:
+    image: pgvector/pgvector:pg15
+    container_name: aifw-postgres
+    environment:
+      POSTGRES_DB: aifw
+      POSTGRES_USER: aifw_user
+      POSTGRES_PASSWORD: aifw_password
+      POSTGRES_INITDB_ARGS: "-E UTF8"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init_db.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aifw_user -d aifw"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - aifw-network
+
+  # Redis with RediSearch module for caching and vector similarity
+  redis:
+    image: redis/redis-stack:latest
+    container_name: aifw-redis
+    ports:
+      - "6379:6379"
+      - "8001:8001"  # RedisInsight UI
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - aifw-network
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+
+  # FastAPI application with gRPC server
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: aifw-api
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      # Database
+      DATABASE_URL: postgresql+asyncpg://aifw_user:aifw_password@postgres:5432/aifw
+      # Redis
+      REDIS_URL: redis://redis:6379
+      REDIS_VECTOR_INDEX: prompt_embeddings
+      # API Configuration
+      API_V1_PREFIX: /api/v1
+      RATE_LIMIT_PER_MINUTE: 1000
+      # Detection Settings
+      REGEX_PATTERNS_FILE: /app/config/patterns.yaml
+      SEMANTIC_THRESHOLD: 0.85
+      EMBEDDING_MODEL: all-MiniLM-L6-v2
+      # gRPC
+      GRPC_PORT: 50051
+      # Application
+      LOG_LEVEL: INFO
+      ENVIRONMENT: development
+      # Security
+      CORS_ORIGINS: '["http://localhost:3000", "http://localhost:8000"]'
+    ports:
+      - "8000:8000"  # FastAPI REST API
+      - "50051:50051"  # gRPC server
+    volumes:
+      - ./src:/app/src
+      - ./config:/app/config
+      - ./logs:/app/logs
+    networks:
+      - aifw-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
+  # Prometheus for metrics collection (optional)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: aifw-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    networks:
+      - aifw-network
+    profiles:
+      - monitoring
+
+  # Grafana for metrics visualization (optional)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: aifw-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./config/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./config/grafana/datasources:/etc/grafana/provisioning/datasources
+    networks:
+      - aifw-network
+    profiles:
+      - monitoring
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+
+networks:
+  aifw-network:
+    driver: bridge

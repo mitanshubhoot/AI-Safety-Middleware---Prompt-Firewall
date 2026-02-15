@@ -1,0 +1,82 @@
+syntax = "proto3";
+
+package aifw.audit;
+
+// Service for audit logging
+service AuditService {
+  // Log an event
+  rpc LogEvent(LogEventRequest) returns (LogEventResponse);
+  
+  // Query audit trail
+  rpc QueryAuditTrail(QueryAuditTrailRequest) returns (QueryAuditTrailResponse);
+  
+  // Get audit logs by user
+  rpc GetUserAuditLogs(GetUserAuditLogsRequest) returns (QueryAuditTrailResponse);
+  
+  // Get recent audit logs
+  rpc GetRecentLogs(GetRecentLogsRequest) returns (QueryAuditTrailResponse);
+}
+
+// Log event request
+message LogEventRequest {
+  optional string user_id = 1;
+  string action = 2;
+  string resource_type = 3;
+  optional string resource_id = 4;
+  string status = 5;
+  optional string ip_address = 6;
+  optional string user_agent = 7;
+  map<string, string> details = 8;
+}
+
+// Log event response
+message LogEventResponse {
+  string id = 1;
+  string timestamp = 2;
+  bool success = 3;
+}
+
+// Query audit trail request
+message QueryAuditTrailRequest {
+  optional string user_id = 1;
+  optional string action = 2;
+  optional string resource_type = 3;
+  optional string status = 4;
+  optional string start_date = 5;
+  optional string end_date = 6;
+  int32 skip = 7;
+  int32 limit = 8;
+}
+
+// Get user audit logs request
+message GetUserAuditLogsRequest {
+  string user_id = 1;
+  int32 skip = 2;
+  int32 limit = 3;
+}
+
+// Get recent logs request
+message GetRecentLogsRequest {
+  int32 hours = 1;
+  int32 limit = 2;
+}
+
+// Query audit trail response
+message QueryAuditTrailResponse {
+  repeated AuditLogEntry logs = 1;
+  int32 total = 2;
+}
+
+// Audit log entry
+message AuditLogEntry {
+  string id = 1;
+  string timestamp = 2;
+  optional string user_id = 3;
+  string action = 4;
+  string resource_type = 5;
+  optional string resource_id = 6;
+  string status = 7;
+  optional string ip_address = 8;
+  optional string user_agent = 9;
+  map<string, string> details = 10;
+}

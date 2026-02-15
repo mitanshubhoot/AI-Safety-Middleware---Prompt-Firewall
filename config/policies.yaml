@@ -1,0 +1,161 @@
+# Policy configurations for prompt validation
+policies:
+  # Default policy applied to all prompts
+  default:
+    id: "default_policy"
+    name: "Default Security Policy"
+    description: "Standard security checks for all prompts"
+    version: "1.0"
+    enabled: true
+    rules:
+      - type: "block_pii"
+        enabled: true
+        severity: "critical"
+        action: "block"
+        categories: ["ssn", "credit_card"]
+      - type: "block_credentials"
+        enabled: true
+        severity: "critical"
+        action: "block"
+        categories: ["api_keys", "private_keys", "tokens", "passwords"]
+      - type: "warn_emails"
+        enabled: true
+        severity: "medium"
+        action: "warn"
+        categories: ["email"]
+      - type: "block_internal_ips"
+        enabled: true
+        severity: "medium"
+        action: "block"
+        categories: ["ipv4_private"]
+
+  # Strict policy for production environments
+  strict:
+    id: "strict_policy"
+    name: "Strict Production Policy"
+    description: "Maximum security for production workloads"
+    version: "1.0"
+    enabled: true
+    rules:
+      - type: "block_all_pii"
+        enabled: true
+        severity: "critical"
+        action: "block"
+        categories: ["ssn", "credit_card", "email", "phone_us", "phone_international"]
+      - type: "block_all_credentials"
+        enabled: true
+        severity: "critical"
+        action: "block"
+        categories: ["api_keys", "private_keys", "tokens", "passwords", "database"]
+      - type: "block_all_network"
+        enabled: true
+        severity: "high"
+        action: "block"
+        categories: ["ipv4_private", "ipv4_public", "internal_url"]
+      - type: "semantic_check"
+        enabled: true
+        severity: "high"
+        threshold: 0.85
+        action: "block"
+
+  # Permissive policy for development/testing
+  permissive:
+    id: "permissive_policy"
+    name: "Permissive Development Policy"
+    description: "Relaxed policy for development environments"
+    version: "1.0"
+    enabled: true
+    rules:
+      - type: "warn_critical_only"
+        enabled: true
+        severity: "critical"
+        action: "warn"
+        categories: ["api_keys", "private_keys", "ssn", "credit_card"]
+      - type: "allow_internal"
+        enabled: true
+        severity: "low"
+        action: "allow"
+        categories: ["ipv4_private", "internal_url"]
+
+  # Department-specific policies
+  finance:
+    id: "finance_policy"
+    name: "Finance Department Policy"
+    description: "Enhanced PII protection for finance team"
+    version: "1.0"
+    enabled: true
+    rules:
+      - type: "block_financial_data"
+        enabled: true
+        severity: "critical"
+        action: "block"
+        categories: ["credit_card", "ssn"]
+      - type: "block_credentials"
+        enabled: true
+        severity: "critical"
+        action: "block"
+        categories: ["api_keys", "tokens", "passwords"]
+      - type: "semantic_check"
+        enabled: true
+        severity: "high"
+        threshold: 0.90
+        action: "block"
+
+  engineering:
+    id: "engineering_policy"
+    name: "Engineering Department Policy"
+    description: "Balanced policy for engineering teams"
+    version: "1.0"
+    enabled: true
+    rules:
+      - type: "block_production_keys"
+        enabled: true
+        severity: "critical"
+        action: "block"
+        categories: ["api_keys", "private_keys", "database"]
+      - type: "warn_dev_credentials"
+        enabled: true
+        severity: "medium"
+        action: "warn"
+        categories: ["tokens", "passwords"]
+      - type: "allow_internal_network"
+        enabled: true
+        severity: "low"
+        action: "allow"
+        categories: ["ipv4_private"]
+
+# Global settings
+settings:
+  default_policy: "default"
+  fallback_action: "block"  # What to do if policy evaluation fails
+  cache_policy_results: true
+  policy_cache_ttl: 3600  # seconds
+  log_all_decisions: true
+  require_policy_version: false
+
+# Allow/Deny lists
+allowlist:
+  # Domains that are always allowed
+  domains:
+    - "example.com"
+    - "test.local"
+  # Patterns that are always allowed
+  patterns:
+    - "localhost"
+    - "127.0.0.1"
+  # User IDs that bypass certain checks
+  users: []
+
+denylist:
+  # Keywords that are always blocked
+  keywords:
+    - "root password"
+    - "admin credentials"
+    - "master key"
+  # Exact phrases to block
+  phrases:
+    - "ignore all previous instructions"
+    - "disregard safety measures"
+  # Regex patterns to block
+  patterns:
+    - "\\b(hack|exploit|vulnerability)\\b.*\\b(production|live|prod)\\b"

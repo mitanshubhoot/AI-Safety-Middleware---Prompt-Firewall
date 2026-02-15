@@ -1,0 +1,102 @@
+syntax = "proto3";
+
+package aifw.policy_management;
+
+// Service for policy management
+service PolicyManagementService {
+  // Create a new policy
+  rpc CreatePolicy(CreatePolicyRequest) returns (PolicyResponse);
+  
+  // Update an existing policy
+  rpc UpdatePolicy(UpdatePolicyRequest) returns (PolicyResponse);
+  
+  // Get a policy by ID
+  rpc GetPolicy(GetPolicyRequest) returns (PolicyResponse);
+  
+  // List all policies
+  rpc ListPolicies(ListPoliciesRequest) returns (ListPoliciesResponse);
+  
+  // Get active policies
+  rpc GetActivePolicies(GetActivePoliciesRequest) returns (ListPoliciesResponse);
+  
+  // Enable a policy
+  rpc EnablePolicy(EnablePolicyRequest) returns (PolicyResponse);
+  
+  // Disable a policy
+  rpc DisablePolicy(DisablePolicyRequest) returns (PolicyResponse);
+  
+  // Delete a policy
+  rpc DeletePolicy(DeletePolicyRequest) returns (DeletePolicyResponse);
+}
+
+// Create policy request
+message CreatePolicyRequest {
+  string policy_id = 1;
+  string name = 2;
+  optional string description = 3;
+  string rules = 4; // JSON string
+  bool enabled = 5;
+}
+
+// Update policy request
+message UpdatePolicyRequest {
+  string policy_id = 1;
+  optional string name = 2;
+  optional string description = 3;
+  optional string rules = 4; // JSON string
+  optional bool enabled = 5;
+}
+
+// Get policy request
+message GetPolicyRequest {
+  string policy_id = 1;
+}
+
+// List policies request
+message ListPoliciesRequest {
+  int32 skip = 1;
+  int32 limit = 2;
+}
+
+// Get active policies request
+message GetActivePoliciesRequest {}
+
+// Enable policy request
+message EnablePolicyRequest {
+  string policy_id = 1;
+}
+
+// Disable policy request
+message DisablePolicyRequest {
+  string policy_id = 1;
+}
+
+// Delete policy request
+message DeletePolicyRequest {
+  string policy_id = 1;
+}
+
+// Policy response
+message PolicyResponse {
+  string id = 1;
+  string policy_id = 2;
+  string name = 3;
+  optional string description = 4;
+  string rules = 5; // JSON string
+  bool enabled = 6;
+  int32 version = 7;
+  string created_at = 8;
+  string updated_at = 9;
+}
+
+// List policies response
+message ListPoliciesResponse {
+  repeated PolicyResponse policies = 1;
+  int32 total = 2;
+}
+
+// Delete policy response
+message DeletePolicyResponse {
+  bool success = 1;
+  string message = 2;
+}
