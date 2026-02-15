@@ -4,7 +4,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
-Enterprise-grade AI safety middleware that intercepts and validates LLM prompts in real-time. Prevents data leaks, detects sensitive information, and enforces security policies before prompts reach LLM providers.
+AI safety middleware that intercepts and validates LLM prompts in real-time. Prevents data leaks, detects sensitive information, and enforces security policies before prompts reach LLM providers.
 
 ## ✨ Features
 
