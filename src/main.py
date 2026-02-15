@@ -244,6 +244,10 @@ app.include_router(health.router, prefix="")
 app.include_router(prompts.router, prefix=settings.API_V1_PREFIX)
 app.include_router(policies.router, prefix=settings.API_V1_PREFIX)
 
+# Import and include auth router
+from src.api.routes import auth
+app.include_router(auth.router, prefix=settings.API_V1_PREFIX)
+
 
 # Root endpoint
 @app.get("/")
